@@ -50,7 +50,8 @@ export function readSpecification(basePath: string): CreateFileMapResults {
     function readFile(filename: string): string {
 
         try {
-            return JSON.parse(fs.readFileSync(filename, 'utf8'));
+            const str = fs.readFileSync(filename, 'utf8');
+            return JSON.parse(str.trim());
         }
         catch(err) {
             addError(err.message);
@@ -58,6 +59,8 @@ export function readSpecification(basePath: string): CreateFileMapResults {
     }
 
     function processFile(filename: string, content: any): void {
+
+        console.log("Processing file: ", filename);
 
         if(!content) return;
 

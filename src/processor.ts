@@ -655,6 +655,12 @@ export function processFiles(files: SpecificationFileMap): ProcessFilesResults {
                 return "string";
             case "markdown":
                 return "string";
+            case "canonical":
+                return "string";
+            case "uuid":
+                return "string";
+            case "url":
+                return "string";
         }
     }
 
@@ -734,7 +740,7 @@ export function processFiles(files: SpecificationFileMap): ProcessFilesResults {
                     if(element.max != "0") {
                         var propertyType = getPropertyTypeForElement(type, element);
                         if (!propertyType) {
-                            addError("Error getting type for property '%s'.", propertyName);
+                            addError("Error getting type for property", propertyName, JSON.stringify(type, undefined, 2), JSON.stringify(element, undefined, 2));
                             return;
                         }
 
@@ -918,14 +924,24 @@ export function processFiles(files: SpecificationFileMap): ProcessFilesResults {
                 addError("Expected content reference '%s' to start with #.", element.contentReference);
                 return null;
             }
-            elementType = getReferencedType(findTypeOfFirstProperty(rootType, getPropertyName(element.contentReference), []));
+
+
+            // elementType = getReferencedType(findTypeOfFirstProperty(rootType, getPropertyName(element.contentReference), []));
+            let propertyName = getPropertyName(element.contentReference)
+            let firstProp = findTypeOfFirstProperty(rootType, propertyName, []);
+            elementType = getReferencedType(firstProp);
+
+
             if(!elementType) {
                 addError("Could not resolve content reference '%s'.", element.contentReference);
                 return null;
             }
 
-            if(elementType.kind != TypeKind.InterfaceType) {
-                addError("Expected content reference to resolve to an interface type.");
+            if(elementType.kind != TypeKind.InterfaceType && elementType.kind != TypeKind.Primitive) {
+                console.log("==> ", JSON.stringify(propertyName, undefined, 2), JSON.stringify(firstProp, undefined, 2), JSON.stringify(elementType, undefined, 2))
+                // console.log("Expected content reference to resolve to an interface type.", elementType.kind, JSON.stringify(elementType, undefined, 2), JSON.stringify(element, undefined, 2), JSON.stringify(rootType, undefined, 2));
+                addError("Expected content reference to resolve to an interface type.", elementType.kind);
+
             }
 
             // create a reference to the interface type
@@ -998,6 +1014,7 @@ export function processFiles(files: SpecificationFileMap): ProcessFilesResults {
 
                 var propertyType = property.type;
                 if (property.name == name) {
+                    // console.log("FOUND PROPERTY NAME")
                     return propertyType;
                 }
 
@@ -1005,6 +1022,7 @@ export function processFiles(files: SpecificationFileMap): ProcessFilesResults {
                 if (propertyType && (propertyType.kind & TypeKind.ObjectTypes)) {
                     var match = findTypeOfFirstProperty(<ObjectType>propertyType, name, checked);
                     if (match) {
+                        // console.log("FOUND PROPERTY MATCH")
                         return match;
                     }
                 }
@@ -1033,7 +1051,7 @@ export function processFiles(files: SpecificationFileMap): ProcessFilesResults {
 
             var typeName = typeElement.code;
             if (!typeName) {
-                addError("Missing type name.");
+                addError("Missing type name.", typeElement);
                 return null;
             }
 
@@ -1080,20 +1098,37 @@ export function processFiles(files: SpecificationFileMap): ProcessFilesResults {
     function getResourceNameFromProfile(profile: string): string {
 
         var base = "http://hl7.org/fhir/StructureDefinition/";
+        if(Array.isArray(profile))
+            profile = profile[0];
 
         if(profile.indexOf(base) == -1) {
-            addError("Unrecognized profile uri: '" + profile + "'.");
+            addError("Unrecognized profile uri. ==> |", profile, "|", base, "|", profile.indexOf(base));
             return null;
         }
+
+        // 'http://hl7.org/fhir/StructureDefinition/SimpleQuantity'
+        // 'http://hl7.org/fhir/StructureDefinition/ -1
 
         return profile.substring(base.length);
     }
 
-    function getFileForType(name: string): SpecificationFile {
+    function getFileForType(name: string | any[] | any): SpecificationFile {
 
-        var elementTypeFile = files[name];
+        let strName: any;
+
+        if(Array.isArray(name))
+            strName = name[0]
+        else
+            strName = name;
+
+        if (strName.extension) {
+            console.log("strname.extension", JSON.stringify(strName.extension[0].valueString, undefined, 2));
+            strName = strName.extension[0].valueString
+        }
+
+        var elementTypeFile = files[strName];
         if (!elementTypeFile) {
-            addError("Unknown type '%s'.", name);
+            addError("Unknown type '%s'.", JSON.stringify(name, undefined, 2));
             return null;
         }
 

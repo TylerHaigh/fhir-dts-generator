@@ -1,22 +1,22 @@
 module.exports = function(grunt) {
 
     grunt.loadNpmTasks('grunt-if-missing');
-    
+
     require('load-grunt-tasks')(grunt);
 
     // Project configuration.
     grunt.initConfig({
         pkg: grunt.file.readJSON("package.json"),
 
-        'request-progress': {
-            'download-specification': {
-                options: {
-                    allowOverwrite: false,
-                    src: 'http://www.hl7.org/fhir/fhir-spec.zip',
-                    dst: 'specification/fhir-spec.zip'
-                }
-            }
-        },
+        // 'request-progress': {
+        //     'download-specification': {
+        //         options: {
+        //             allowOverwrite: false,
+        //             src: 'http://www.hl7.org/fhir/fhir-spec.zip',
+        //             dst: 'specification/fhir-spec.zip'
+        //         }
+        //     }
+        // },
 
         unzip: {
             'specification/fhir-spec/': 'specification/fhir-spec.zip'
@@ -71,7 +71,7 @@ module.exports = function(grunt) {
 
     // Default task(s).
     grunt.registerTask("default", [ "setup", "build", "generate" ]);
-    grunt.registerTask("setup", [ "request-progress:download-specification", "if-missing:unzip" ]);
+    grunt.registerTask("setup", [ "if-missing:unzip" ]);
     grunt.registerTask("build", [ "clean:build", "typescript:build", "copy:build" ]);
     grunt.registerTask("generate", [ "execute:generate" ]);
 };
