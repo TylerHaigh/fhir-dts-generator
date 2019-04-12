@@ -8,15 +8,15 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON("package.json"),
 
-        // 'request-progress': {
-        //     'download-specification': {
-        //         options: {
-        //             allowOverwrite: false,
-        //             src: 'http://www.hl7.org/fhir/fhir-spec.zip',
-        //             dst: 'specification/fhir-spec.zip'
-        //         }
-        //     }
-        // },
+        'request-progress': {
+            'download-specification': {
+                options: {
+                    allowOverwrite: false,
+                    src: 'https://www.hl7.org/FHIR/R4/fhir-spec-r4.zip',
+                    dst: 'specification/fhir-spec.zip'
+                }
+            }
+        },
 
         unzip: {
             'specification/fhir-spec/': 'specification/fhir-spec.zip'
